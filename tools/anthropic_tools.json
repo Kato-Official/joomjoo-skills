@@ -1,0 +1,51 @@
+[
+  {
+    "name": "issue_card",
+    "description": "Issue a real virtual card capped at `amount` USD for a specific merchant. Returns the card details and a spend_request_id. Use single_use=true for a one-time purchase (the card auto-freezes after the first charge). Base URL https://mooj-api-277196974190.us-central1.run.app ; send header Authorization: Bearer $JOOMJOO_API_KEY. Maps to POST /v1/cards.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "amount": { "type": "number", "description": "Spend cap in USD dollars." },
+        "merchant": { "type": "string", "description": "Merchant the card is for, e.g. namecheap." },
+        "single_use": { "type": "boolean", "description": "True (default) = one-time card that auto-freezes after the first charge." }
+      },
+      "required": ["amount", "merchant"]
+    }
+  },
+  {
+    "name": "complete_purchase",
+    "description": "Hand Joomjoo a plain-English purchase task and a spend cap. Joomjoo mints a card, drives the merchant checkout in a real browser, auto-handles 3DS, and pays. Async: returns a checkout_id to poll with get_checkout_status. confirm_pay=false stops at the final review without charging. Maps to POST /v1/checkout.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "task": { "type": "string", "description": "Plain-English description of what to buy." },
+        "merchant": { "type": "string", "description": "Merchant to buy from." },
+        "amount": { "type": "number", "description": "Maximum USD to spend (becomes the card cap)." },
+        "confirm_pay": { "type": "boolean", "description": "False (default) = dry run, stop at review. True = pay autonomously up to the cap." }
+      },
+      "required": ["task", "merchant", "amount"]
+    }
+  },
+  {
+    "name": "get_checkout_status",
+    "description": "Poll a complete_purchase run. Status is one of queued, running, awaiting_approval, needs_login, submitted, blocked. Maps to GET /v1/checkout/{checkout_id}.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "checkout_id": { "type": "string", "description": "The checkout_id returned by complete_purchase." }
+      },
+      "required": ["checkout_id"]
+    }
+  },
+  {
+    "name": "get_spend_status",
+    "description": "Check whether a card from issue_card was charged. Status is one of not_started, authorized, cleared, declined. Maps to GET /v1/spend/{spend_id}.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "spend_id": { "type": "string", "description": "The spend_request_id returned by issue_card." }
+      },
+      "required": ["spend_id"]
+    }
+  }
+]

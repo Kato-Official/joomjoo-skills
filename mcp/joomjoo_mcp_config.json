@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "joomjoo": {
+      "command": "npx",
+      "args": ["-y", "@joomjoo/mcp"],
+      "env": {
+        "JOOMJOO_API_KEY": "mk_live_your_key_here"
+      }
+    }
+  }
+}

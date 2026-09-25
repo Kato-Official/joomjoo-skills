@@ -1,0 +1,286 @@
+{
+  "info": {
+    "name": "Joomjoo API v1",
+    "description": "The payment layer for AI agents. Issue capped virtual cards and let Mooj complete real checkouts. Set the collection variable `apiKey` to your mk_live_ key, then run any request.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{apiKey}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://mooj-api-277196974190.us-central1.run.app",
+      "type": "string"
+    },
+    {
+      "key": "apiKey",
+      "value": "mk_live_your_key_here",
+      "type": "string"
+    },
+    {
+      "key": "cardId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "spendRequestId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "checkoutId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "connectionId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Cards",
+      "item": [
+        {
+          "name": "Create a card",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 20,\n  \"merchant\": \"namecheap\",\n  \"single_use\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/cards",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "cards"
+              ]
+            },
+            "description": "Mint a virtual card capped at `amount` (USD). Returns id, last4, exp, and spend_request_id."
+          }
+        },
+        {
+          "name": "Reveal a card",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/cards/{{cardId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "cards",
+                "{{cardId}}"
+              ]
+            },
+            "description": "Return the full PAN, CVC, and expiry. Set the `cardId` variable to a card id from Create a card."
+          }
+        },
+        {
+          "name": "Close a card",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/cards/{{cardId}}/close",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "cards",
+                "{{cardId}}",
+                "close"
+              ]
+            },
+            "description": "Close a card and release any unused reserve to your wallet."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Spend",
+      "item": [
+        {
+          "name": "Get spend status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/spend/{{spendRequestId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "spend",
+                "{{spendRequestId}}"
+              ]
+            },
+            "description": "Check whether a card was charged. Status: not_started, authorized, cleared, declined. Set `spendRequestId` from Create a card."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Checkout",
+      "item": [
+        {
+          "name": "Start a checkout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"task\": \"buy the domain mooj.click for 1 year\",\n  \"merchant\": \"namecheap\",\n  \"amount\": 20,\n  \"confirm_pay\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/checkout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "checkout"
+              ]
+            },
+            "description": "Async. Mooj drives the checkout. confirm_pay:false stops at review; true pays up to the cap. Returns checkout_id."
+          }
+        },
+        {
+          "name": "Get checkout status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/checkout/{{checkoutId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "checkout",
+                "{{checkoutId}}"
+              ]
+            },
+            "description": "Poll a checkout. Status: queued, running, awaiting_approval, needs_login, submitted, blocked. Set `checkoutId` from Start a checkout."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Connections",
+      "item": [
+        {
+          "name": "Create a connection",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"merchant\": \"namecheap\",\n  \"user_ref\": \"user-123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/connections",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "connections"
+              ]
+            },
+            "description": "Create a reusable merchant login. Returns connect_url (open it so the user signs in) and connection_id."
+          }
+        },
+        {
+          "name": "Complete a connection",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/connections/{{connectionId}}/complete",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "connections",
+                "{{connectionId}}",
+                "complete"
+              ]
+            },
+            "description": "Call after the user signs in at connect_url. Persists the login; status becomes connected."
+          }
+        },
+        {
+          "name": "List connections",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/connections",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "connections"
+              ]
+            },
+            "description": "List all connections for your account."
+          }
+        },
+        {
+          "name": "Get a connection",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/connections/{{connectionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "connections",
+                "{{connectionId}}"
+              ]
+            },
+            "description": "Poll a single connection's status (pending / connected)."
+          }
+        }
+      ]
+    }
+  ]
+}
