@@ -1,5 +1,10 @@
 <p align="center">
-  <a href="https://joomjoo.com"><img src="https://assets.joomjoo.com/logo/png/joomjoo-logo-horizontal-black-1704x414.png" alt="Joomjoo" width="360"></a>
+  <a href="https://joomjoo.com">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://assets.joomjoo.com/logo/png/joomjoo-logo-horizontal-white-1704x414.png">
+      <img src="https://assets.joomjoo.com/logo/png/joomjoo-logo-horizontal-black-1704x414.png" alt="Joomjoo" width="300">
+    </picture>
+  </a>
 </p>
 
 <h1 align="center">Let your AI agent pay on its own</h1>
@@ -18,10 +23,6 @@
 <br>
 
 This repository is everything an agent needs to use Joomjoo, in the format each agent reads. One skill, one AGENTS.md, one MCP server, four tool files, the full API reference. They all describe the same four tools and are regenerated together whenever the API changes.
-
-<p align="center">
-  <img src="https://assets.joomjoo.com/characters/otto-with-joomjoo-v1.png" alt="Otto, the Joomjoo agent, holding a Joomjoo card" width="420">
-</p>
 
 ## Install in one line
 
