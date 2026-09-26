@@ -13,9 +13,9 @@ export JOOMJOO_API_KEY="mk_live_your_key_here"
 
 3. Base URL: `https://mooj-api-277196974190.us-central1.run.app`. Every request sends `Authorization: Bearer $JOOMJOO_API_KEY`. Amounts are US dollars. Every response carries a `request_id`; quote it when something goes wrong.
 
-Prefer the SDK when the project has one: `npm install @joomjoo/sdk` (`import { Joomjoo } from "@joomjoo/sdk"`), `pip install joomjoo` (`from joomjoo import Joomjoo`). For an MCP client, `JOOMJOO_API_KEY=mk_live_... npx -y @joomjoo/mcp` exposes the same four tools.
+Prefer the SDK when the project has one: `npm install @joomjoo/sdk` (`import { Joomjoo } from "@joomjoo/sdk"`), `pip install joomjoo` (`from joomjoo import Joomjoo`). For an MCP client, `JOOMJOO_API_KEY=mk_live_... npx -y @joomjoo/mcp` exposes the same six tools.
 
-## The four tools
+## The six tools
 
 ### complete_purchase: hand Joomjoo the whole checkout (preferred)
 
@@ -74,6 +74,26 @@ curl -s https://mooj-api-277196974190.us-central1.run.app/v1/spend/SPEND_REQUEST
 
 `status` is `not_started`, `authorized`, `cleared` or `declined`; `settled` is true once the bank cleared it, usually the next day.
 
+### get_wallet: what the account can spend
+
+```
+curl -s https://mooj-api-277196974190.us-central1.run.app/v1/wallet \
+  -H "Authorization: Bearer $JOOMJOO_API_KEY"
+```
+
+Returns `balance`, `available` (free to assign to a new card), `reserved` (on open cards) and `pending` (bank money not landed yet), in dollars, plus display strings. Check it when a 402 `insufficient_funds` is possible.
+
+### create_topup_link: when the wallet is short
+
+```
+curl -s https://mooj-api-277196974190.us-central1.run.app/v1/wallet/funding-sessions \
+  -H "Authorization: Bearer $JOOMJOO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"amount": 50, "success_url": "https://yourapp.example/funded"}'
+```
+
+Returns a Stripe Checkout `url`. Give it to the person; Stripe takes a card or stablecoin; the wallet is credited the moment Stripe confirms (webhook `money.funded`). Never type a card yourself, never ask the person for their card number. For a bank transfer, `POST /v1/wallet/bank-transfers` with `amount` and `rail` (`ach`, `wire_domestic`, `wire_international`, `uae_local`) returns the account to send to and a `reference_code` for the memo; the money is pending until it lands.
+
 ## Rules, always
 
 - Never spend above the cap you were given. One card per purchase; a single-use card locks itself after its first charge.
@@ -86,4 +106,4 @@ curl -s https://mooj-api-277196974190.us-central1.run.app/v1/spend/SPEND_REQUEST
 
 ## Webhooks instead of polling
 
-The person can register an endpoint in the console (Developer, Webhooks). Each delivery is `{"id", "type", "created", "data"}` with the `Joomjoo-Signature: t=<unix>,v1=<hex>` header, an HMAC-SHA256 of `t + "." + rawBody` with the endpoint's signing secret. Events: `card.authorized`, `card.cleared`, `card.declined`, `checkout.submitted`, `checkout.needs_login`, `checkout.blocked`.
+The person can register an endpoint in the console (Developer, Webhooks). Each delivery is `{"id", "type", "created", "data"}` with the `Joomjoo-Signature: t=<unix>,v1=<hex>` header, an HMAC-SHA256 of `t + "." + rawBody` with the endpoint's signing secret. Events: `card.authorized`, `card.cleared`, `card.declined`, `checkout.submitted`, `checkout.needs_login`, `checkout.blocked`, `money.funded`.

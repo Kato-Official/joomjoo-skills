@@ -281,6 +281,85 @@
           }
         }
       ]
+    },
+    {
+      "name": "Wallet",
+      "item": [
+        {
+          "name": "Read the wallet",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/wallet",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "wallet"
+              ]
+            },
+            "description": "Balance, available, reserved, pending, in dollars."
+          }
+        },
+        {
+          "name": "Top up by card or stablecoin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/wallet/funding-sessions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "wallet",
+                "funding-sessions"
+              ]
+            },
+            "description": "Returns a Stripe Checkout url to open for the person. The wallet is credited when Stripe confirms (money.funded).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 50,\n  \"success_url\": \"https://yourapp.example/funded\",\n  \"cancel_url\": \"https://yourapp.example/cancelled\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Top up by bank transfer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/wallet/bank-transfers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "wallet",
+                "bank-transfers"
+              ]
+            },
+            "description": "Declares the transfer and returns the account to send to plus the reference code for the memo.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 500,\n  \"rail\": \"wire_domestic\",\n  \"currency\": \"USD\",\n  \"sent_on\": \"2026-09-26\",\n  \"idempotency_key\": \"transfer-2026-09-26-001\"\n}"
+            }
+          }
+        }
+      ]
     }
   ]
 }

@@ -4,7 +4,7 @@ Install:
     pip install joomjoo langchain-core
 
 Set JOOMJOO_API_KEY in your environment (get a key from the Joomjoo console -> API keys).
-Then add MOOJ_TOOLS to your agent. Card controls, 3DS, and fraud caps are handled for you.
+Then add JOOMJOO_TOOLS to your agent. Card controls, 3DS, and fraud caps are handled for you.
 """
 
 import os
@@ -40,7 +40,8 @@ def complete_purchase(task: str, merchant: str, amount: float, confirm_pay: bool
 def get_checkout_status(checkout_id: str) -> dict:
     """Poll a complete_purchase run.
 
-    Status is one of: queued, running, awaiting_approval, needs_login, submitted, blocked.
+    Status is one of: queued, running, needs_login, needs_answer, awaiting_approval, paying, submitted,
+    canceled, blocked, error. review_total and order_total are display strings such as "60.90 AED".
     """
     return joomjoo.checkout.get(checkout_id)
 
@@ -54,9 +55,30 @@ def get_spend_status(spend_id: str) -> dict:
     return joomjoo.spend.get(spend_id)
 
 
+@tool
+def get_wallet() -> dict:
+    """The wallet every card and purchase draws on: balance, available (free to assign),
+    reserved (on open cards), pending (bank money in flight), in US dollars.
+    Call it before a purchase when a 402 insufficient_funds is possible.
+    """
+    return joomjoo.wallet.get()
+
+
+@tool
+def create_topup_link(amount: float, success_url: str = "", cancel_url: str = "") -> dict:
+    """When the wallet is short: a Stripe top-up page for `amount` US dollars.
+    Give the returned url to the person; the wallet is credited when Stripe confirms.
+    Never type a card yourself.
+    """
+    return joomjoo.wallet.create_funding_session(
+        amount=amount, success_url=success_url or None, cancel_url=cancel_url or None
+    )
+
+
 # Drop these into your agent.
-MOOJ_TOOLS = [issue_card, complete_purchase, get_checkout_status, get_spend_status]
+JOOMJOO_TOOLS = [issue_card, complete_purchase, get_checkout_status, get_spend_status, get_wallet, create_topup_link]
+MOOJ_TOOLS = JOOMJOO_TOOLS  # the old name, kept so existing agents keep running
 
 # LangChain:  from langgraph.prebuilt import create_react_agent
-#             agent = create_react_agent(llm, MOOJ_TOOLS)
-# CrewAI:     pass MOOJ_TOOLS to your Agent(tools=...), or wrap each callable with crewai.tools.tool.
+#             agent = create_react_agent(llm, JOOMJOO_TOOLS)
+# CrewAI:     pass JOOMJOO_TOOLS to your Agent(tools=...), or wrap each callable with crewai.tools.tool.

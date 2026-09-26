@@ -7,11 +7,23 @@
         "parameters": {
           "type": "OBJECT",
           "properties": {
-            "amount": { "type": "NUMBER", "description": "Spend cap in USD dollars." },
-            "merchant": { "type": "STRING", "description": "Merchant the card is for, e.g. namecheap." },
-            "single_use": { "type": "BOOLEAN", "description": "True (default) = one-time card that auto-freezes after the first charge." }
+            "amount": {
+              "type": "NUMBER",
+              "description": "Spend cap in USD dollars."
+            },
+            "merchant": {
+              "type": "STRING",
+              "description": "Merchant the card is for, e.g. namecheap."
+            },
+            "single_use": {
+              "type": "BOOLEAN",
+              "description": "True (default) = one-time card that auto-freezes after the first charge."
+            }
           },
-          "required": ["amount", "merchant"]
+          "required": [
+            "amount",
+            "merchant"
+          ]
         }
       },
       {
@@ -20,12 +32,28 @@
         "parameters": {
           "type": "OBJECT",
           "properties": {
-            "task": { "type": "STRING", "description": "Plain-English description of what to buy." },
-            "merchant": { "type": "STRING", "description": "Merchant to buy from." },
-            "amount": { "type": "NUMBER", "description": "Maximum USD to spend (becomes the card cap)." },
-            "confirm_pay": { "type": "BOOLEAN", "description": "False (default) = dry run, stop at review. True = pay autonomously up to the cap." }
+            "task": {
+              "type": "STRING",
+              "description": "Plain-English description of what to buy."
+            },
+            "merchant": {
+              "type": "STRING",
+              "description": "Merchant to buy from."
+            },
+            "amount": {
+              "type": "NUMBER",
+              "description": "Maximum USD to spend (becomes the card cap)."
+            },
+            "confirm_pay": {
+              "type": "BOOLEAN",
+              "description": "False (default) = dry run, stop at review. True = pay autonomously up to the cap."
+            }
           },
-          "required": ["task", "merchant", "amount"]
+          "required": [
+            "task",
+            "merchant",
+            "amount"
+          ]
         }
       },
       {
@@ -34,9 +62,14 @@
         "parameters": {
           "type": "OBJECT",
           "properties": {
-            "checkout_id": { "type": "STRING", "description": "The checkout_id returned by complete_purchase." }
+            "checkout_id": {
+              "type": "STRING",
+              "description": "The checkout_id returned by complete_purchase."
+            }
           },
-          "required": ["checkout_id"]
+          "required": [
+            "checkout_id"
+          ]
         }
       },
       {
@@ -45,9 +78,47 @@
         "parameters": {
           "type": "OBJECT",
           "properties": {
-            "spend_id": { "type": "STRING", "description": "The spend_request_id returned by issue_card." }
+            "spend_id": {
+              "type": "STRING",
+              "description": "The spend_request_id returned by issue_card."
+            }
           },
-          "required": ["spend_id"]
+          "required": [
+            "spend_id"
+          ]
+        }
+      },
+      {
+        "name": "get_wallet",
+        "description": "The wallet every card and purchase draws on: balance, available (free to assign), reserved (on open cards), pending (bank money in flight), in US dollars. Call it before a purchase when a 402 insufficient_funds is possible. GET /v1/wallet.",
+        "parameters": {
+          "type": "object",
+          "properties": {},
+          "required": []
+        }
+      },
+      {
+        "name": "create_topup_link",
+        "description": "When the wallet is short: make a top-up link for `amount` US dollars and give the url to the person. It opens a Stripe page (card or stablecoin); the wallet is credited the moment Stripe confirms. Never type a card yourself. POST /v1/wallet/funding-sessions.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "amount": {
+              "type": "number",
+              "description": "US dollars to add."
+            },
+            "success_url": {
+              "type": "string",
+              "description": "https page the person lands on after paying (optional)."
+            },
+            "cancel_url": {
+              "type": "string",
+              "description": "https page the person lands on if they cancel (optional)."
+            }
+          },
+          "required": [
+            "amount"
+          ]
         }
       }
     ]

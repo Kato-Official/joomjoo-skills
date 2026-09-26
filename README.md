@@ -22,7 +22,7 @@
 
 <br>
 
-This repository is everything an agent needs to use Joomjoo, in the format each agent reads. One skill, one AGENTS.md, one MCP server, four tool files, the full API reference. They all describe the same four tools and are regenerated together whenever the API changes.
+This repository is everything an agent needs to use Joomjoo, in the format each agent reads. One skill, one AGENTS.md, one MCP server, four tool files, the full API reference. They all describe the same six tools and are regenerated together whenever the API changes.
 
 ## Install in one line
 
@@ -38,7 +38,7 @@ This repository is everything an agent needs to use Joomjoo, in the format each 
 
 Every file reads the key from the `JOOMJOO_API_KEY` environment variable, so the file itself is safe to commit. Get a key at [app.joomjoo.com](https://app.joomjoo.com), Developer, API keys. Joomjoo is in private beta: request an invite at [joomjoo.com/beta.html](https://joomjoo.com/beta.html).
 
-## The four tools
+## The six tools
 
 | Tool | What it does | Returns |
 |---|---|---|
@@ -46,6 +46,8 @@ Every file reads the key from the `JOOMJOO_API_KEY` environment variable, so the
 | `get_checkout_status` | Poll a checkout until it ends. Ten statuses, each with a clear next step (see the skill). | status, order id, totals |
 | `issue_card` | A real virtual card capped at an amount, for the rare case your agent must type a card itself. | card, `spend_request_id` |
 | `get_spend_status` | Whether a card was charged: `not_started`, `authorized`, `cleared`, `declined`. | status, settled, amount |
+| `get_wallet` | The wallet the cards draw on: balance, available, reserved, pending, in dollars. | the wallet |
+| `create_topup_link` | When the wallet is short: a Stripe top-up page for an amount, handed to the person. Card or stablecoin; the agent never types a card. A bank transfer route exists too. | a url |
 
 ## One purchase, end to end
 
@@ -84,8 +86,8 @@ run = joomjoo.checkout.create(task="buy the domain example.click for 1 year", me
 | `skills/joomjoo/SKILL.md` | The skill: setup, the four tools, the ten checkout statuses and what the agent does at each, the rules, webhooks |
 | `AGENTS.md` | The same knowledge as a universal AGENTS.md |
 | `mcp/joomjoo_mcp_config.json` | One entry for your MCP settings |
-| `tools/` | Tool definitions for the Anthropic, OpenAI and Gemini APIs, and LangChain or CrewAI |
-| `docs/api-reference.md` | The full REST reference: authentication, cards, spend, checkout, connections, errors, webhooks |
+| `tools/` | Tool definitions for the Anthropic, OpenAI and Gemini APIs, and LangChain or CrewAI, all six tools |
+| `docs/api-reference.md` | The full REST reference: authentication, cards, spend, checkout, connections, wallet, errors, webhooks |
 | `docs/joomjoo.postman_collection.json` | Every endpoint, ready to import |
 | `CHANGELOG.md` | What changed, and which package versions each release matches |
 

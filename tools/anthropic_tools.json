@@ -5,11 +5,23 @@
     "input_schema": {
       "type": "object",
       "properties": {
-        "amount": { "type": "number", "description": "Spend cap in USD dollars." },
-        "merchant": { "type": "string", "description": "Merchant the card is for, e.g. namecheap." },
-        "single_use": { "type": "boolean", "description": "True (default) = one-time card that auto-freezes after the first charge." }
+        "amount": {
+          "type": "number",
+          "description": "Spend cap in USD dollars."
+        },
+        "merchant": {
+          "type": "string",
+          "description": "Merchant the card is for, e.g. namecheap."
+        },
+        "single_use": {
+          "type": "boolean",
+          "description": "True (default) = one-time card that auto-freezes after the first charge."
+        }
       },
-      "required": ["amount", "merchant"]
+      "required": [
+        "amount",
+        "merchant"
+      ]
     }
   },
   {
@@ -18,12 +30,28 @@
     "input_schema": {
       "type": "object",
       "properties": {
-        "task": { "type": "string", "description": "Plain-English description of what to buy." },
-        "merchant": { "type": "string", "description": "Merchant to buy from." },
-        "amount": { "type": "number", "description": "Maximum USD to spend (becomes the card cap)." },
-        "confirm_pay": { "type": "boolean", "description": "False (default) = dry run, stop at review. True = pay autonomously up to the cap." }
+        "task": {
+          "type": "string",
+          "description": "Plain-English description of what to buy."
+        },
+        "merchant": {
+          "type": "string",
+          "description": "Merchant to buy from."
+        },
+        "amount": {
+          "type": "number",
+          "description": "Maximum USD to spend (becomes the card cap)."
+        },
+        "confirm_pay": {
+          "type": "boolean",
+          "description": "False (default) = dry run, stop at review. True = pay autonomously up to the cap."
+        }
       },
-      "required": ["task", "merchant", "amount"]
+      "required": [
+        "task",
+        "merchant",
+        "amount"
+      ]
     }
   },
   {
@@ -32,9 +60,14 @@
     "input_schema": {
       "type": "object",
       "properties": {
-        "checkout_id": { "type": "string", "description": "The checkout_id returned by complete_purchase." }
+        "checkout_id": {
+          "type": "string",
+          "description": "The checkout_id returned by complete_purchase."
+        }
       },
-      "required": ["checkout_id"]
+      "required": [
+        "checkout_id"
+      ]
     }
   },
   {
@@ -43,9 +76,47 @@
     "input_schema": {
       "type": "object",
       "properties": {
-        "spend_id": { "type": "string", "description": "The spend_request_id returned by issue_card." }
+        "spend_id": {
+          "type": "string",
+          "description": "The spend_request_id returned by issue_card."
+        }
       },
-      "required": ["spend_id"]
+      "required": [
+        "spend_id"
+      ]
+    }
+  },
+  {
+    "name": "get_wallet",
+    "description": "The wallet every card and purchase draws on: balance, available (free to assign), reserved (on open cards), pending (bank money in flight), in US dollars. Call it before a purchase when a 402 insufficient_funds is possible. GET /v1/wallet.",
+    "input_schema": {
+      "type": "object",
+      "properties": {},
+      "required": []
+    }
+  },
+  {
+    "name": "create_topup_link",
+    "description": "When the wallet is short: make a top-up link for `amount` US dollars and give the url to the person. It opens a Stripe page (card or stablecoin); the wallet is credited the moment Stripe confirms. Never type a card yourself. POST /v1/wallet/funding-sessions.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number",
+          "description": "US dollars to add."
+        },
+        "success_url": {
+          "type": "string",
+          "description": "https page the person lands on after paying (optional)."
+        },
+        "cancel_url": {
+          "type": "string",
+          "description": "https page the person lands on if they cancel (optional)."
+        }
+      },
+      "required": [
+        "amount"
+      ]
     }
   }
 ]

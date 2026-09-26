@@ -135,6 +135,9 @@ card.declined
 checkout.submitted
 checkout.needs\_login
 checkout.blocked
+money.funded
+
+`money.funded` fires when a top-up lands in the wallet, by card, stablecoin or bank, with `amount`, `method` and `balance_after`.
 
 Each delivery is JSON: `{ "id", "type", "created", "data": { ... } }`.
 
@@ -345,6 +348,85 @@ GET/v1/connections/{id}
 
 List all connections, or poll a single connection's status (`pending` / `connected`).
 
+## Wallet 
+
+The wallet every card and checkout draws on. A top-up always ends on Stripe's own page, so a card number never passes through the API or through you.
+
+### Read the wallet
+
+GET/v1/wallet
+
+200 Response
+
+```
+{
+"currency": "USD",
+"balance": 32.96,
+"available": 22.96,
+"reserved": 10,
+"pending": 0,
+"balance\_display": "$32.96",
+"available\_display": "$22.96"
+}
+```
+
+`available` is what a new card can be capped at. `reserved` sits on open cards. `pending` is declared bank money that has not landed yet and cannot be spent.
+
+### Top up by card or stablecoin
+
+POST/v1/wallet/funding-sessions
+
+| Field | Type | Req | Description |
+| --- | --- | --- | --- |
+| amount | number | yes | Dollars to add. |
+| success\_url | string | no | Where the person lands after paying, https. Defaults to the Joomjoo console. |
+| cancel\_url | string | no | Where the person lands if they cancel, https. |
+
+200 Response
+
+```
+{
+"funding\_session\_id": "cs\_live\_...",
+"url": "https://checkout.stripe.com/c/pay/...",
+"amount": 50,
+"status": "open"
+}
+```
+
+Open `url` for the person. Stripe offers card and stablecoin. The wallet is credited the moment Stripe confirms; subscribe to `money.funded` to know, or poll `GET /v1/wallet`.
+
+Returns 402 `wallet_limit`, `funding_budget_reached` or `funding_unavailable` when a fence refuses the amount; the message says which.
+
+### Top up by bank transfer
+
+POST/v1/wallet/bank-transfers
+
+| Field | Type | Req | Description |
+| --- | --- | --- | --- |
+| amount | number | yes | Amount in the transfer currency. |
+| rail | string | no | `ach` (default), `wire_domestic`, `wire_international` or `uae_local`. |
+| currency | string | no | `USD`, or `AED` for `uae_local`. Defaults by rail. |
+| sent\_on | string | no | `yyyy-MM-dd`, the day the transfer was sent. |
+| sender\_bank\_name, sender\_account\_name, sender\_reference | string | no | What the bank statement will show, so the transfer is matched faster. |
+| idempotency\_key | string | no | Your own key; a retry returns the same declaration. |
+
+200 Response
+
+```
+{
+"funding\_event\_id": "...",
+"status": "pending",
+"amount": 500,
+"currency": "USD",
+"rail": "wire\_domestic",
+"reference\_code": "7K2QW9PD",
+"pending\_balance": 500,
+"instructions": { "beneficiary\_name": "Joomjoo, LLC", "account\_number": "...", "routing\_number": "...", "reference": "7K2QW9PD" }
+}
+```
+
+Show the person `instructions`. The reference code goes in the transfer memo. The money is pending until it lands, then `money.funded` fires and the balance moves.
+
 ## Errors 
 
 Joomjoo uses conventional HTTP status codes. The body carries a machine-readable string and a `request_id`.
@@ -354,7 +436,7 @@ Joomjoo uses conventional HTTP status codes. The body carries a machine-readable
 | 200 | Success. |
 | 400 | `invalid_request`, `invalid_amount`: a required field is missing or invalid. `connection_not_found`: no connected connection with that id. `site_required`, `site_ambiguous`: the account has no stored login for that merchant, or several; pass `start_url`. `agent_required`: the account has several agents and none was named. |
 | 401 | `missing_api_key`, `invalid_api_key`, `expired_api_key` (the body carries `expired_at`). |
-| 402 | `insufficient_funds`: the requested cap exceeds the available wallet balance. `plan_limit`: the plan's cards a month or per-card cap is reached. |
+| 402 | `insufficient_funds`: the requested cap exceeds the available wallet balance. `plan_limit`: the plan's cards a month or per-card cap is reached. `wallet_limit`, `funding_budget_reached`, `funding_unavailable`: a wallet fence refused a top-up. |
 | 404 | `card_not_found`, `spend_not_found`, `checkout_not_found`, `connection_not_found`, `account_not_found`: not found, or not owned by your account. |
 | 409 | `agent_paused`: resume the agent first. `busy`: the merchant session is busy with another run, retry shortly. |
 | 502 | `card_issue_failed`, `reveal_failed`, `close_failed`, `spend_status_failed`, `checkout_start_failed`, `connect_start_failed`, `enqueue_failed`: an upstream step failed; the message says which. Retry with the same `idempotency_key`. |
