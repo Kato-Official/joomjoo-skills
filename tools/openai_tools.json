@@ -3,7 +3,7 @@
     "type": "function",
     "function": {
       "name": "issue_card",
-      "description": "Issue a real virtual card capped at `amount` USD for a specific merchant. Returns the card details and a spend_request_id. Use single_use=true for a one-time purchase (the card auto-freezes after the first charge). Base URL https://mooj-api-277196974190.us-central1.run.app ; send header Authorization: Bearer $JOOMJOO_API_KEY. Maps to POST /v1/cards.",
+      "description": "Issue a real virtual card capped at `amount` USD for a specific merchant. Returns the card details and a spend_request_id. Use single_use=true for a one-time purchase (the card auto-freezes after the first charge). Base URL https://api.joomjoo.com ; send header Authorization: Bearer $JOOMJOO_API_KEY. Maps to POST /v1/cards.",
       "parameters": {
         "type": "object",
         "properties": {

@@ -17,7 +17,7 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "https://mooj-api-277196974190.us-central1.run.app",
+      "value": "https://api.joomjoo.com",
       "type": "string"
     },
     {

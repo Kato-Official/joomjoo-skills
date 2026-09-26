@@ -16,7 +16,7 @@ Joomjoo gives an agent three things it did not have: its own cards with a limit 
 export JOOMJOO_API_KEY="mk_live_your_key_here"
 ```
 
-3. Base URL: `https://mooj-api-277196974190.us-central1.run.app`. Every request sends `Authorization: Bearer $JOOMJOO_API_KEY`. Amounts are US dollars. Every response carries a `request_id`; quote it when something goes wrong.
+3. Base URL: `https://api.joomjoo.com`. Every request sends `Authorization: Bearer $JOOMJOO_API_KEY`. Amounts are US dollars. Every response carries a `request_id`; quote it when something goes wrong.
 
 Prefer the SDK when the project has one: `npm install @joomjoo/sdk` (`import { Joomjoo } from "@joomjoo/sdk"`), `pip install joomjoo` (`from joomjoo import Joomjoo`). For an MCP client, `JOOMJOO_API_KEY=mk_live_... npx -y @joomjoo/mcp` exposes the same six tools.
 
@@ -27,7 +27,7 @@ Prefer the SDK when the project has one: `npm install @joomjoo/sdk` (`import { J
 Give a plain-English task, the merchant, and the most you may spend. Joomjoo opens the merchant in its own browser, uses the person's stored login when there is one, reaches the final review, mints a single-use card for the real total plus a small margin (never above the cap), pays, and clears 3DS itself. The card number never touches you.
 
 ```
-curl -s https://mooj-api-277196974190.us-central1.run.app/v1/checkout \
+curl -s https://api.joomjoo.com/v1/checkout \
   -H "Authorization: Bearer $JOOMJOO_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"task": "buy the domain example.click for 1 year", "merchant": "namecheap", "amount": 20, "confirm_pay": false, "idempotency_key": "order-2026-09-25-001"}'
@@ -42,7 +42,7 @@ Response: `{"checkout_id": "...", "status": "queued", "confirm_pay": false, "hos
 ### get_checkout_status: poll until a terminal status
 
 ```
-curl -s https://mooj-api-277196974190.us-central1.run.app/v1/checkout/CHECKOUT_ID \
+curl -s https://api.joomjoo.com/v1/checkout/CHECKOUT_ID \
   -H "Authorization: Bearer $JOOMJOO_API_KEY"
 ```
 
@@ -62,7 +62,7 @@ Poll every 5 to 10 seconds. Statuses and what to do:
 ### issue_card: a real card with a cap, when you must pay yourself
 
 ```
-curl -s https://mooj-api-277196974190.us-central1.run.app/v1/cards \
+curl -s https://api.joomjoo.com/v1/cards \
   -H "Authorization: Bearer $JOOMJOO_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"amount": 20, "merchant": "namecheap", "single_use": true}'
@@ -73,7 +73,7 @@ Response: `id`, `brand`, `last4`, `exp_month`, `exp_year`, `spend_limit`, `singl
 ### get_spend_status: did the card get charged
 
 ```
-curl -s https://mooj-api-277196974190.us-central1.run.app/v1/spend/SPEND_REQUEST_ID \
+curl -s https://api.joomjoo.com/v1/spend/SPEND_REQUEST_ID \
   -H "Authorization: Bearer $JOOMJOO_API_KEY"
 ```
 
@@ -82,7 +82,7 @@ curl -s https://mooj-api-277196974190.us-central1.run.app/v1/spend/SPEND_REQUEST
 ### get_wallet: what the account can spend
 
 ```
-curl -s https://mooj-api-277196974190.us-central1.run.app/v1/wallet \
+curl -s https://api.joomjoo.com/v1/wallet \
   -H "Authorization: Bearer $JOOMJOO_API_KEY"
 ```
 
@@ -91,7 +91,7 @@ Returns `balance`, `available` (free to assign to a new card), `reserved` (on op
 ### create_topup_link: when the wallet is short
 
 ```
-curl -s https://mooj-api-277196974190.us-central1.run.app/v1/wallet/funding-sessions \
+curl -s https://api.joomjoo.com/v1/wallet/funding-sessions \
   -H "Authorization: Bearer $JOOMJOO_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"amount": 50, "success_url": "https://yourapp.example/funded"}'

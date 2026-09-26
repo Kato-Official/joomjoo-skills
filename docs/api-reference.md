@@ -10,7 +10,7 @@ The Joomjoo API is organized around REST. It has predictable, resource-oriented 
 
 |  |  |
 | --- | --- |
-| Base URL | `https://mooj-api-277196974190.us-central1.run.app` |
+| Base URL | `https://api.joomjoo.com` |
 | Version | All endpoints are under `/v1`. |
 | Auth | Bearer API key in the `Authorization` header. |
 | Content type | `application/json` for all request bodies. |
@@ -30,7 +30,7 @@ Shell
 ```
 export JOOMJOO\_API\_KEY="YOUR\_API\_KEY"
 # every request sends the bearer header:
-curl https://mooj-api-277196974190.us-central1.run.app/v1/spend/example \
+curl https://api.joomjoo.com/v1/spend/example \
 -H "Authorization: Bearer $JOOMJOO\_API\_KEY"
 ```
 
@@ -45,7 +45,7 @@ Issue your first card in one call. The response comes back with a real, usable c
 cURL
 
 ```
-curl https://mooj-api-277196974190.us-central1.run.app/v1/cards \
+curl https://api.joomjoo.com/v1/cards \
 -H "Authorization: Bearer $JOOMJOO\_API\_KEY" \
 -H "Content-Type: application/json" \
 -d '{"amount": 20, "merchant": "namecheap", "single\_use": true}'
@@ -89,12 +89,12 @@ cURL
 
 ```
 # 1. start the checkout (confirm\_pay:false = dry run, stops at review)
-curl https://mooj-api-277196974190.us-central1.run.app/v1/checkout \
+curl https://api.joomjoo.com/v1/checkout \
 -H "Authorization: Bearer $JOOMJOO\_API\_KEY" \
 -H "Content-Type: application/json" \
 -d '{"task":"buy the domain joomjoo.click for 1 year","merchant":"namecheap","amount":20,"confirm\_pay":false}'
 # 2. poll until it finishes
-curl https://mooj-api-277196974190.us-central1.run.app/v1/checkout/CHECKOUT\_ID \
+curl https://api.joomjoo.com/v1/checkout/CHECKOUT\_ID \
 -H "Authorization: Bearer $JOOMJOO\_API\_KEY"
 ```
 
@@ -539,4 +539,4 @@ Agent (MCP)
 }
 ```
 
-Joomjoo API v1 · Base URL `https://mooj-api-277196974190.us-central1.run.app` · Questions? Reach the team from the console.
+Joomjoo API v1 · Base URL `https://api.joomjoo.com` · Questions? Reach the team from the console.
