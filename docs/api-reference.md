@@ -134,8 +134,11 @@ card.cleared
 card.declined
 checkout.submitted
 checkout.needs\_login
+checkout.needs\_card\_approval
 checkout.blocked
 money.funded
+
+`checkout.needs_card_approval` fires when a checkout paid with a connected card reaches the review: `approval_url` (send it to the cardholder), `approval_expires_at`, `amount_display`, `card_last4`.
 
 `money.funded` fires when a top-up lands in the wallet, by card, stablecoin or bank, with `amount`, `method` and `balance_after`.
 
@@ -235,6 +238,48 @@ Close a card and release any unused reserve back to your wallet.
 }
 ```
 
+### Connect the person's own card
+
+POST/v1/cards/connect
+
+Returns a one-hour, single-use link. Send it to the cardholder: they open it in Safari or Chrome on the phone they will approve purchases with, type their own credit or debit card once, and lock it with a passkey. The card is encrypted on their device before it leaves the page; Joomjoo never holds the number in clear and never stores the security code. Nothing is issued and nothing is prepaid: they keep their points.
+
+200 Response
+
+```
+{
+"connect\_id": "6f1c...",
+"connect\_url": "https://claim.joomjoo.com/add/6f1c...#...",
+"expires\_at": "2026-10-20T23:00:00.000Z",
+"status": "open"
+}
+```
+
+A connected card pays only after the cardholder approves each purchase on that phone: the checkout stops at the review, `GET /v1/checkout/{id}` answers `needs_card_approval` with an `approval_url`, and the `checkout.needs_card_approval` event carries the same link. The bank's own check (3-D Secure) on a connected card is not cleared by Joomjoo; the cardholder completes it on the agent's screen.
+
+### List cards
+
+GET/v1/cards
+
+Every card on the account: connected cards first (`source: "own"`), then issued cards (`source: "issued"`).
+
+200 Response
+
+```
+{
+"cards": [
+{ "id": "9b2e...", "source": "own", "brand": "visa", "last4": "4242", "exp": "12/30", "label": "Visa ending 4242", "status": "active" },
+{ "id": "card\_8f2a...", "source": "issued", "brand": "visa", "last4": "8339", "exp": "04/33", "status": "active", "single\_use": true, "spend\_limit": 20 }
+]
+}
+```
+
+### Remove a connected card
+
+DELETE/v1/cards/{id}
+
+Removes a connected card (`source: "own"`) and withdraws any purchase waiting on it. An issued card is closed with `POST /v1/cards/{id}/close` instead.
+
 ## Spend 
 
 ### Get spend status
@@ -277,7 +322,8 @@ Asynchronous. Joomjoo mints a card, drives the merchant checkout, handles 3DS, a
 | confirm\_pay | boolean | no | Default false: the run stops at the final review and waits for the account owner's yes. true: pay without a human yes, up to the cap. The agent's own approval mode can only make this stricter; the response's `confirm_pay` says what was granted. |
 | idempotency\_key | string | no | Your own key for this checkout. A retry with the same key returns the same checkout instead of starting a second run. |
 | connection\_id | string | no | Run signed-in on a [connection](#connections). Auto-matched by merchant if omitted. |
-| card\_holder\_name | string | no | Name on the card for the run. |
+| own\_card\_id | string | no | Pay with a [connected card](#connect-card) instead of an issued one. The checkout stops at the review until the cardholder approves on their phone; `confirm_pay` cannot skip that approval. |
+| card\_holder\_name | string | no | Name on the card for the run (issued cards only). |
 | start\_url | string | no | URL or bare domain to open first. |
 
 200 Response
@@ -304,6 +350,11 @@ GET/v1/checkout/{checkout\_id}
 "merchant": "namecheap",
 "amount": 20,
 "card\_last4": "4775",
+"card\_source": "issued",
+"needs\_card\_approval": false,
+"approval\_url": null,
+"approval\_expires\_at": null,
+"payment\_unknown": false,
 "host": "www.namecheap.com",
 "review\_total": "1.98 USD",
 "order\_id": null,

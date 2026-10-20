@@ -115,6 +115,62 @@
             },
             "description": "Close a card and release any unused reserve to your wallet."
           }
+        },
+        {
+          "name": "Connect your own card",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/cards/connect",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "cards",
+                "connect"
+              ]
+            },
+            "description": "A one-hour, single-use link. The cardholder opens it on the phone they will approve purchases with, types their own card once and locks it with a passkey. Joomjoo never holds the number in clear; the security code is never stored."
+          }
+        },
+        {
+          "name": "List cards",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/cards",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "cards"
+              ]
+            },
+            "description": "Every card on the account: connected cards (source own) first, then issued cards (source issued)."
+          }
+        },
+        {
+          "name": "Remove a connected card",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v1/cards/{{cardId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "cards",
+                "{{cardId}}"
+              ]
+            },
+            "description": "Removes a connected card and withdraws any purchase waiting on it. Issued cards are closed with POST /v1/cards/{id}/close."
+          }
         }
       ]
     },
@@ -169,7 +225,7 @@
                 "checkout"
               ]
             },
-            "description": "Async. Mooj drives the checkout. confirm_pay:false stops at review; true pays up to the cap. Returns checkout_id."
+            "description": "Async. Mooj drives the checkout. confirm_pay:false stops at review; true pays up to the cap. Returns checkout_id. Optional own_card_id: pay with a connected card; the checkout then stops at the review until the cardholder approves on their phone (needs_card_approval, approval_url)."
           }
         },
         {

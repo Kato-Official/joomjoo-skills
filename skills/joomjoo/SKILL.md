@@ -112,3 +112,8 @@ Returns a Stripe Checkout `url`. Give it to the person; Stripe takes a card or s
 ## Webhooks instead of polling
 
 The person can register an endpoint in the console (Developer, Webhooks). Each delivery is `{"id", "type", "created", "data"}` with the `Joomjoo-Signature: t=<unix>,v1=<hex>` header, an HMAC-SHA256 of `t + "." + rawBody` with the endpoint's signing secret. Events: `card.authorized`, `card.cleared`, `card.declined`, `checkout.submitted`, `checkout.needs_login`, `checkout.blocked`, `money.funded`.
+
+
+## The person's own card (connected, not issued)
+
+A cardholder can connect one of their OWN credit or debit cards once, behind a passkey, and the agent pays with it after they approve each purchase on their phone. `POST /v1/cards/connect` returns a one-hour, single-use `connect_url`; send it to the cardholder, never open it yourself. `GET /v1/cards` lists it with `source: "own"`. To pay with it, pass `own_card_id` on `POST /v1/checkout`: the checkout stops at the review with status `needs_card_approval` and an `approval_url` (also on the `checkout.needs_card_approval` event); give that link to the cardholder, who types the security code and confirms with their passkey. `confirm_pay` cannot skip that approval, and the bank's own check (3-D Secure) on a connected card is the cardholder's to complete on the agent's screen. `DELETE /v1/cards/{id}` removes a connected card. A connected card has no cap beyond the approved order, nothing is issued and nothing is prepaid.
