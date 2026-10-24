@@ -51,7 +51,7 @@ Poll every 5 to 10 seconds. Statuses and what to do:
 | status | meaning | what you do |
 |---|---|---|
 | queued, running, paying | Joomjoo is working | keep polling |
-| needs_login | the merchant wants a signed-in session | tell the person to sign in once at the console (Developer, Connections), then start again |
+| needs_login | the merchant wants a signed-in session | read `login_check`, `login_url` and `connect_url` on the status: `signed_out` or `unknown` means the person signs in once at `connect_url` (the agent never types a password), then start again on the same connection; `passkey_password` means the person is signed in and the merchant wants the password once so Joomjoo can add its passkey (type it at `connect_url` and start again, or `POST /v1/connections/{id}/passkey` with `{"action": "skip"}` to keep the plain session) |
 | needs_answer | Joomjoo asked the person a choice (size, delivery slot) in the console | wait, keep polling |
 | awaiting_approval | the final review is ready, `review_total` shows the shop's total (a display string such as "60.90 AED") | tell the person to approve in the console, keep polling |
 | submitted | paid; `order_id` and `order_total` are set | done, report the order |
@@ -113,6 +113,10 @@ Returns a Stripe Checkout `url`. Give it to the person; Stripe takes a card or s
 
 The person can register an endpoint in the console (Developer, Webhooks). Each delivery is `{"id", "type", "created", "data"}` with the `Joomjoo-Signature: t=<unix>,v1=<hex>` header, an HMAC-SHA256 of `t + "." + rawBody` with the endpoint's signing secret. Events: `card.authorized`, `card.cleared`, `card.declined`, `checkout.submitted`, `checkout.needs_login`, `checkout.blocked`, `money.funded`.
 
+
+## Merchant logins and the Joomjoo passkey
+
+A connection is the person's signed-in session at one merchant. `POST /v1/connections` gives a `connect_url` where the person signs in once; `POST /v1/connections/{id}/complete` saves it. On merchants that take passkeys (Amazon first), Joomjoo then adds its own passkey to that account the next time a checkout runs, and from then on every checkout signs in by itself, even after the merchant expires the session: `GET /v1/connections` shows `layer: "passkey"` and `passkey_status: "connected"` (or `connected_unmanaged` when the merchant shows no identifier Joomjoo can use to delete the entry remotely). The agent does nothing for this. `DELETE /v1/connections/{id}` disconnects: the key is destroyed first, then the entry is removed at the merchant when Joomjoo can (`passkey_status` ends `removed` or `removed_locally`, the latter meaning the person removes the "Joomjoo-..." entry in the merchant's security settings). A checkout's `login_layer` says `passkey` or `session`.
 
 ## The person's own card (connected, not issued)
 

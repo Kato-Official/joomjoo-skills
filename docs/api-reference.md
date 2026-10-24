@@ -113,7 +113,7 @@ error
 
 `submitted`, `canceled`, `blocked` and `error` are terminal. `awaiting_approval` means the run reached the final review and is waiting for the account owner's yes in the Joomjoo console (or `confirm_pay: true`, within the agent's own approval mode). `needs_answer` is a choice the account owner is being asked in the console.
 
-If `status` is `needs_login`, the merchant requires a signed-in session. Set up a reusable login once with [Connections](#connect-merchant), then pass its `connection_id` to the checkout.
+If `status` is `needs_login`, the merchant requires a signed-in session. Set up a reusable login once with [Connections](#connections), then pass its `connection_id` to the checkout. The status carries `login_check` (`signed_out`, `unknown`, or `passkey_password`, see [the Joomjoo passkey](#passkey)), `login_url` (the page the browser stopped on) and `connect_url` (the live window where the person signs in). `login_layer` says whether the run signed in with the saved `session` or the Joomjoo `passkey`.
 
 ## Guide: Connect a merchant login 
 
@@ -360,6 +360,10 @@ GET/v1/checkout/{checkout\_id}
 "order\_id": null,
 "order\_total": null,
 "needs\_login": false,
+"login\_check": null,
+"login\_url": null,
+"connect\_url": null,
+"login\_layer": "session",
 "error\_reason": null
 }
 ```
@@ -397,7 +401,61 @@ GET/v1/connections
 
 GET/v1/connections/{id}
 
-List all connections, or poll a single connection's status (`pending` / `connected`).
+List all connections, or poll a single connection's status (`pending` / `connected` / `removed`). Each connection also says which login layer it runs on.
+
+200 Response
+
+```
+{
+"connection\_id": "conn\_5d2b...",
+"merchant": "amazon",
+"status": "connected",
+"layer": "passkey",
+"passkey\_status": "connected",
+"remote\_removal": "available",
+"passkey\_connected\_at": "2026-10-24T22:10:00.000Z"
+}
+```
+
+### The Joomjoo passkey
+
+On merchants that take passkeys (Amazon first), Joomjoo adds its own passkey to the person's account the next time a checkout runs on a connection, and from then on every checkout signs in by itself, even after the merchant expires the session. Nothing changes in your calls. `layer` is `passkey` once that happened, `session` before (the plain signed-in session). `passkey_status` walks through `none`, `enrolling`, `awaiting_password`, `pending`, `connected` or `connected_unmanaged` (the merchant shows no identifier Joomjoo can use to delete the entry remotely), `failed`, `needs_person`, `login_failed`, and on disconnect `removing`, `removed` or `removed_locally`. A checkout's `login_layer` says which layer signed in.
+
+Some merchants ask for the account password once before a passkey can be added. The checkout then stops with `needs_login` and `login_check: "passkey_password"`: the person is signed in; they type the password at `connect_url` (Joomjoo never stores it) and you start the checkout again on the same connection, or you skip it below and the connection stays on the session layer.
+
+### Skip the passkey password
+
+POST/v1/connections/{id}/passkey
+
+| Field | Type | Req | Description |
+| --- | --- | --- | --- |
+| action | string | yes | Only `skip`. The connection keeps signing in with the saved session; the password is never asked again for it. |
+
+200 Response
+
+```
+{
+"connection\_id": "conn\_5d2b...",
+"passkey\_status": "needs\_person",
+"changed": true
+}
+```
+
+### Disconnect
+
+DELETE/v1/connections/{id}
+
+Ends the connection. The Joomjoo key is destroyed first, so nothing can sign in with it from that moment; the saved session is deleted; the entry at the merchant is removed when Joomjoo can. Poll the connection: `passkey_status` ends `removed`, or `removed_locally` when the person has to remove the entry named `Joomjoo-...` in the merchant's security settings themselves. Idempotent.
+
+200 Response
+
+```
+{
+"connection\_id": "conn\_5d2b...",
+"status": "removing",
+"passkey\_status": "removing"
+}
+```
 
 ## Wallet 
 
